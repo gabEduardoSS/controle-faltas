@@ -6,8 +6,9 @@
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
+    "dev": "npm-run-all --parallel dev:react dev:electron",
     "dev:react": "vite",
-    "dev:electron": "cross-env NODE_ENV=development electron .",
+    "dev:electron": "npm run transpile:electron &&cross-env NODE_ENV=development electron .",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -20,6 +21,7 @@
     "axios": "^1.19.0",
     "axios-cookiejar-support": "^7.0.0",
     "dotenv": "^17.4.2",
+    "os-utils": "^0.0.14",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "tough-cookie": "^6.0.2"
@@ -27,6 +29,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.13.3",
+    "@types/os-utils": "^0.0.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
@@ -37,6 +40,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "npm-run-all": "^4.1.5",
     "ts-node": "^10.9.2",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
