@@ -1,0 +1,16 @@
+{
+    "appId": "com.controle-faltas.app",
+    "files": ["dist-electron", "dist-react"],
+    "icon": "./icon.ico",
+    "mac": {
+        "target": "dmg"
+    },
+    "linux": {
+        "target": "AppImage",
+        "category": "Utility"
+    },
+    "win": {
+        "icon": "./icon.ico",
+        "target": ["portable", "msi"]
+    }
+}
