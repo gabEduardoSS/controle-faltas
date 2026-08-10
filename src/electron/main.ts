@@ -24,8 +24,11 @@ function createWindow(){
   pollResources();
 }
 
-ipcMain.handle('from-main', async (event, data) => {
-  console.log('Data received', data); 
+ipcMain.handle('from-main', async (event, data : Array<string>) => {
+  data.forEach(element => {
+      console.log('Data received', element); 
+  });
+
 });
 
 app.whenReady().then(createWindow)

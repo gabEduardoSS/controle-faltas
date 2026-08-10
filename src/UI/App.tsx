@@ -5,8 +5,8 @@ import './App.css'
 function App() {
   const [input, setInput] = useState('');
 
-  function handleSend() = async () => {
-    const send = await window.electronAPI.sendData()
+  const handleSend() = async () => {
+    await window.electronAPI.sendData()
   }
   return (
     <div className="mainContainer">
