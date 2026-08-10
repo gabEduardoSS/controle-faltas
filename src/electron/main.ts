@@ -1,10 +1,20 @@
-import {app, BrowserWindow} from 'electron';
+import {app, BrowserWindow, ipcMain} from 'electron';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { isDev } from './util.js';
 import { pollResources } from './resourceManager.js';
 
-app.on('ready', () => {
-  const mainWindow = new BrowserWindow({});
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+function createWindow(){
+  const mainWindow = new BrowserWindow({
+     webPreferences: {
+      preload: path.join(__dirname, 'preload.ts'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
   if (isDev()){
     mainWindow.loadURL('http://localhost:5123');
   } else{
@@ -12,4 +22,10 @@ app.on('ready', () => {
   }
 
   pollResources();
+}
+
+ipcMain.handle('from-main', async (event, data) => {
+  console.log('Data received', data); 
 });
+
+app.whenReady().then(createWindow)
