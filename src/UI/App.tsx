@@ -3,16 +3,17 @@ import { useState } from 'react';
 import './App.css'
 
 function App() {
-  const [input, setInput] = useState('');
+  const [text, setText] = useState('');
 
   const handleSend() = async () => {
-    await window.electronAPI.sendData()
+    await window.electronAPI.sendData([input, input2])
   }
   return (
     <div className="mainContainer">
       <div>
         USUARIO:
-        <input type="text" name="userInput" id="" />
+        <input
+        value={text} onChange={(e) => setText(e.target.value)} type="text" name="userInput" id="" />
       </div>
       <div>
         SENHA:
