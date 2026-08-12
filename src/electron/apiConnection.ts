@@ -117,7 +117,7 @@ async function fazerLogin(USUARIO: string, SENHA: string): Promise<{ client: Axi
   const resp = await client.post(LOGIN_URL, payload.toString(), {
     headers: headersPost,
   }).then((response) => {
-    console.log("Status do POST auth:", response);
+    console.log("Status do POST auth:", response.status);
     return response;
   }).catch((error) => {
     console.error("Erro no POST auth:", error);
