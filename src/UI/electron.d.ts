@@ -1,5 +1,5 @@
 export interface ElectronAPI {
-  sendData: () => Promise<any>; // Declare aqui as funções que você colocou no preload.js
+  sendData: (data: {user: string; password: string }) => Promise<void>; // Declare aqui as funções que você colocou no preload.js
 }
 
 declare global {

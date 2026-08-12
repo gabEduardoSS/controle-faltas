@@ -1,8 +1,4 @@
-/**
- * Login na API da faculdade via requests HTTP puro (sem navegador).
- * Equivalente em TypeScript do script Python original.
- */
-
+import { ipcMain } from "electron";
 import axios, { type AxiosInstance } from "axios";
 import { wrapper } from "axios-cookiejar-support";
 import { CookieJar } from "tough-cookie";
@@ -10,8 +6,6 @@ import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import * as crypto from "crypto";
-import "dotenv/config"; // carrega variáveis do arquivo .env
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -20,10 +14,6 @@ const LOGIN_URL = "https://unipar.lyceum.com.br/aluno/auth";
 const API_BASE = "https://unipar.lyceum.com.br/aluno/apix";
 const PUBLIC_KEY_URL = "https://unipar.lyceum.com.br/aluno/config-properties/public-key";
 const SESSION_FILE = path.resolve(__dirname, "session.json");
-
-// Credenciais vindas de variáveis de ambiente (equivalente ao "from user import USUARIO, SENHA")
-const USUARIO: string = process.env.USUARIO || "";
-const SENHA: string = process.env.SENHA || "";
 
 /**
  * Cria um client axios com um cookie jar próprio.
@@ -87,7 +77,7 @@ function criptografarSenha(senhaTextoPuro: string, pemChavePublica: string): str
   return cifrado.toString("base64");
 }
 
-async function fazerLogin(): Promise<{ client: AxiosInstance; jar: CookieJar }> {
+async function fazerLogin(USUARIO: string, SENHA: string): Promise<{ client: AxiosInstance; jar: CookieJar }> {
   const jar = new CookieJar();
   const client = criarClienteComSessao(jar);
 
@@ -95,27 +85,12 @@ async function fazerLogin(): Promise<{ client: AxiosInstance; jar: CookieJar }> 
   const respGet = await client.get(PORTAL_URL);
   console.log("GET inicial - status:", respGet.status);
 
-  const setCookiesInicial = respGet.headers["set-cookie"] ?? [];
-  console.log("GET inicial - Set-Cookie (lista completa):", setCookiesInicial);
-
-  const cookiesAposGet = await jar.getCookies(PORTAL_URL);
-  console.log(
-    "Cookies após GET inicial:",
-    cookiesAposGet.map((c) => `${c.key}=${c.value}`)
-  );
-
   // 2. Esse GET no favicon é o que faz o Tomcat gerar o JSESSIONID.
   //    Sem ele, o auth retorna 401 mesmo com usuário/senha corretos.
   const respFavicon = await client.get(`${PORTAL_URL}recurso`, {
     params: { aplicacao: "ALUNO_RESP", objeto: "FAVICON" },
   });
   console.log("GET favicon - status:", respFavicon.status);
-
-  const cookiesAposFavicon = await jar.getCookies(PORTAL_URL);
-  console.log(
-    "Cookies após GET favicon:",
-    cookiesAposFavicon.map((c) => `${c.key}=${c.value}`)
-  );
 
   // Busca a chave pública e criptografa a senha, igual o front-end faz via JSEncrypt
   const pemChave = await obterChavePublica(client);
@@ -141,15 +116,16 @@ async function fazerLogin(): Promise<{ client: AxiosInstance; jar: CookieJar }> 
 
   const resp = await client.post(LOGIN_URL, payload.toString(), {
     headers: headersPost,
+  }).then((response) => {
+    console.log("Status do POST auth:", response);
+    return response;
+  }).catch((error) => {
+    console.error("Erro no POST auth:", error);
+    throw error;
   });
 
   console.log("Status do POST auth:", resp.status);
   const cookiesAposPost = await jar.getCookies(LOGIN_URL);
-  console.log(
-    "Cookies após POST:",
-    cookiesAposPost.map((c) => `${c.key}=${c.value}`)
-  );
-  console.log("Resposta (primeiros 300 chars):", String(resp.data).slice(0, 300));
 
   if (resp.status >= 400) {
     throw new Error(`Login falhou com status ${resp.status}`);
@@ -191,7 +167,7 @@ async function sessaoValida(client: AxiosInstance): Promise<boolean> {
   }
 }
 
-async function obterSessao(): Promise<{ client: AxiosInstance; jar: CookieJar }> {
+async function obterSessao(USUARIO: string, SENHA: string): Promise<{ client: AxiosInstance; jar: CookieJar }> {
   const sessaoSalva = await carregarSessao();
   if (sessaoSalva && (await sessaoValida(sessaoSalva.client))) {
     console.log("Sessão reaproveitada.");
@@ -199,9 +175,17 @@ async function obterSessao(): Promise<{ client: AxiosInstance; jar: CookieJar }>
   }
 
   console.log("Sessão expirada ou inexistente. Fazendo login...");
-  const novaSessao = await fazerLogin();
+  const novaSessao = await fazerLogin(USUARIO, SENHA);
   await salvarSessao(novaSessao.jar);
   return novaSessao;
+}
+
+async function buscarDadosUsuario(client: AxiosInstance): Promise<unknown> {
+  const resp = await client.get(`${API_BASE}/pessoas/90508036`);
+  if (resp.status >= 400) {
+    throw new Error(`Erro ao buscar dados do usuário: status ${resp.status}`);
+  }
+  return resp.data;
 }
 
 async function buscarNotas(client: AxiosInstance): Promise<unknown> {
@@ -214,15 +198,18 @@ async function buscarNotas(client: AxiosInstance): Promise<unknown> {
   return resp.data;
 }
 
+export function excluirSessao(): void {
+  if (fs.existsSync(SESSION_FILE)) {
+    fs.unlinkSync(SESSION_FILE); 
+  }
+}
+
 /**
  * Equivalente ao returnData() do Python: ponto de entrada
  * usado por outras partes da aplicação (ex: uma API Express, um handler, etc.)
  */
-export async function returnData(): Promise<unknown> {
-  const { client } = await obterSessao();
+export async function returnData(USUARIO: string, SENHA: string): Promise<unknown> {
+  const { client } = await obterSessao(USUARIO, SENHA);
   return buscarNotas(client);
 }
 
-returnData()
-  .then((dados) => console.log(JSON.stringify(dados, null, 2)))
-  .catch((err) => console.error("Erro:", err));

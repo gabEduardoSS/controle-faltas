@@ -3,27 +3,30 @@ import { useState } from 'react';
 import './App.css'
 
 function App() {
-  const [text, setText] = useState('');
+  const [userInput, setUserInput] = useState('');
+  const [passInput, setPassInput] = useState('');
 
-  const handleSend() = async () => {
-    await window.electronAPI.sendData([input, input2])
-  }
+  const handleSend = async () => {
+    if(userInput.trim() !== '' && passInput.trim() !== '') {
+      await window.electronAPI.sendData({ user: userInput, password: passInput });
+    }
+  };
   return (
     <div className="mainContainer">
       <div>
         USUARIO:
         <input
-        value={text} onChange={(e) => setText(e.target.value)} type="text" name="userInput" id="" />
+        value={userInput} onChange={(e) => setUserInput(e.target.value)} type="text" name="userInput"/>
       </div>
       <div>
         SENHA:
-        <input type="password" name="passInput" id="" />
+        <input 
+        value={passInput} onChange={(e) => setPassInput(e.target.value)} type="password" name="passInput"/>
       </div>
       <div>
-        <button >ENVIAR</button>
+        <button onClick={handleSend}>ENVIAR</button>
       </div>
     </div>
   )
 }
-
 export default App

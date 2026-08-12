@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  receive: (data: Array<string>) => ipcRenderer.invoke('from-main', data)
+  sendData: (data: {user: string; password: string}) => ipcRenderer.invoke('from-main', data)
 });
