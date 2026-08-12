@@ -29,7 +29,7 @@ function createWindow(){
 ipcMain.handle('from-main', async (event, data : {user: string; password: string}) => {
   console.log('Received data from renderer:');
   returnData(data.user, data.password)
-  .then((dados) => console.log("foi"))
+  .then((dados) => console.log("foi ", dados))
   .catch((err) => console.error("Erro:", err));
 });
 

@@ -1,0 +1,3 @@
+var str: string = "eyJuYW1lIjoiRWR1YXJkbyBHYWJyaWVsIGRvcyBTYW50b3MiLCJpZCI6IjkwNTA4MDM2IiwibG9naW4iOiIxMjY0NTEyMzkyOSIsInNlbmhhQWx0ZXJhZGEiOiJ0cnVlIiwicm9sZXMiOiJST0xFX1VTRVIiLCJyb290IjpmYWxzZSwidGhlbWUiOiIifQ=="
+
+console.log(JSON.parse(atob(str)));

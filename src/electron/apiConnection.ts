@@ -77,7 +77,7 @@ function criptografarSenha(senhaTextoPuro: string, pemChavePublica: string): str
   return cifrado.toString("base64");
 }
 
-async function fazerLogin(USUARIO: string, SENHA: string): Promise<{ client: AxiosInstance; jar: CookieJar }> {
+async function fazerLogin(USUARIO: string, SENHA: string): Promise<{ client: AxiosInstance; jar: CookieJar; userInfo: Object }> {
   const jar = new CookieJar();
   const client = criarClienteComSessao(jar);
 
@@ -135,25 +135,30 @@ async function fazerLogin(USUARIO: string, SENHA: string): Promise<{ client: Axi
     throw new Error("Login falhou - nenhum cookie de sessão foi retornado");
   }
 
-  return { client, jar };
+  console.log("cook: ", cookiesAposPost[1].value);
+  return { client, jar, userInfo: JSON.parse(atob(cookiesAposPost[1].value)) };
 }
 
 async function salvarSessao(jar: CookieJar): Promise<void> {
-  // tough-cookie tem serialização nativa via toJSON(), que preserva
-  // domínio/path/expiração de cada cookie (mais completo que só name=value)
   const serializado = jar.toJSON();
-  fs.writeFileSync(SESSION_FILE, JSON.stringify(serializado, null, 2));
+  let token = serializado?.cookies[2].value;
+  let userInfo = {};
+  if(typeof token === "string"){
+    userInfo = JSON.parse(atob(token));
+  }
+
+  fs.writeFileSync(SESSION_FILE, JSON.stringify({ cookies: serializado, userInfo: userInfo }, null, 2));
 }
 
-async function carregarSessao(): Promise<{ client: AxiosInstance; jar: CookieJar } | null> {
+async function carregarSessao(): Promise<{ client: AxiosInstance; jar: CookieJar; userInfo: Object } | null> {
   if (!fs.existsSync(SESSION_FILE)) {
     return null;
   }
   const bruto = fs.readFileSync(SESSION_FILE, "utf-8");
   const dados = JSON.parse(bruto);
-  const jar = CookieJar.fromJSON(JSON.stringify(dados));
+  const jar = CookieJar.fromJSON(JSON.stringify(dados.cookies));
   const client = criarClienteComSessao(jar);
-  return { client, jar };
+  return { client, jar, userInfo: JSON.parse(dados.userInfo) };
 }
 
 async function sessaoValida(client: AxiosInstance): Promise<boolean> {
@@ -167,7 +172,7 @@ async function sessaoValida(client: AxiosInstance): Promise<boolean> {
   }
 }
 
-async function obterSessao(USUARIO: string, SENHA: string): Promise<{ client: AxiosInstance; jar: CookieJar }> {
+async function obterSessao(USUARIO: string, SENHA: string): Promise<{ client: AxiosInstance; jar: CookieJar; userInfo: Object }> {
   const sessaoSalva = await carregarSessao();
   if (sessaoSalva && (await sessaoValida(sessaoSalva.client))) {
     console.log("Sessão reaproveitada.");
@@ -177,11 +182,12 @@ async function obterSessao(USUARIO: string, SENHA: string): Promise<{ client: Ax
   console.log("Sessão expirada ou inexistente. Fazendo login...");
   const novaSessao = await fazerLogin(USUARIO, SENHA);
   await salvarSessao(novaSessao.jar);
+
   return novaSessao;
 }
 
-async function buscarDadosUsuario(client: AxiosInstance): Promise<unknown> {
-  const resp = await client.get(`${API_BASE}/pessoas/90508036`);
+async function buscarDadosUsuario(client: AxiosInstance, userInfo: any): Promise<unknown> {
+  const resp = await client.get(`${API_BASE}/api/rest/alunos/user/${userInfo.id}`);
   if (resp.status >= 400) {
     throw new Error(`Erro ao buscar dados do usuário: status ${resp.status}`);
   }
@@ -209,7 +215,7 @@ export function excluirSessao(): void {
  * usado por outras partes da aplicação (ex: uma API Express, um handler, etc.)
  */
 export async function returnData(USUARIO: string, SENHA: string): Promise<unknown> {
-  const { client } = await obterSessao(USUARIO, SENHA);
-  return buscarNotas(client);
+  const { client, userInfo } = await obterSessao(USUARIO, SENHA);
+  return buscarDadosUsuario(client, userInfo);
 }
 
