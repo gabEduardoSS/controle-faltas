@@ -13,18 +13,20 @@ function App() {
   };
   return (
     <div className="mainContainer">
-      <div>
-        USUARIO:
-        <input
-        value={userInput} onChange={(e) => setUserInput(e.target.value)} type="text" name="userInput"/>
-      </div>
-      <div>
-        SENHA:
-        <input 
-        value={passInput} onChange={(e) => setPassInput(e.target.value)} type="password" name="passInput"/>
-      </div>
-      <div>
-        <button onClick={handleSend}>ENVIAR</button>
+      <div className="loginContainer">
+        <div>
+          USUARIO:
+          <input
+          value={userInput} onChange={(e) => setUserInput(e.target.value)} type="text" name="userInput"/>
+        </div>
+        <div>
+          SENHA:
+          <input 
+          value={passInput} onChange={(e) => setPassInput(e.target.value)} type="password" name="passInput"/>
+        </div>
+        <div>
+          <button onClick={handleSend}>ENVIAR</button>
+        </div>
       </div>
     </div>
   )

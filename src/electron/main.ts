@@ -16,6 +16,8 @@ function createWindow(){
       nodeIntegration: false,
       sandbox: false,
     },
+    autoHideMenuBar: true,
+    icon: "icon.ico",
   });
   if (isDev()){
     mainWindow.loadURL('http://localhost:5123');

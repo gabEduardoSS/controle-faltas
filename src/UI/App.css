@@ -1,13 +1,11 @@
 body{
   display: flex;
   flex-direction: column;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   padding: 0;
   margin: 0;
-  justify-content: center;
-  align-items: center;
-  border: 5px solid white;
+  background-color: #1e1e1e;
 }
 
 .mainContainer{
@@ -15,25 +13,40 @@ body{
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 50%;
-  gap: 5px;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-.mainContainer div{
+.loginContainer{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 50%;
+  gap: 15px;
+  background-color: #343434;
+  padding: 25px;
+  border-radius: 5px;
+}
+
+.loginContainer div{
   font-size: 25px;
   display: flex;
   flex-direction: row;
   width: 100%;
   justify-content: space-between;
+  align-items: center;
 }
 
-.mainContainer input{
+.loginContainer input{
   width: 50%;
   height: 25px;
   font-size: 20px;
 }
 
-.mainContainer button{
+.loginContainer button{
   width: 100%;
   height: 30px;
   font-size: 20px;
